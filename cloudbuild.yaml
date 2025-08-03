@@ -1,37 +1,43 @@
 steps:
-- name: 'gcr.io/cloud-builders/docker'
-  id: Build
-  args:
-    - 'build'
-    - '-t'
-    - 'us-central1-docker.pkg.dev/nathan-new-sre/sre-training-repo/my-flask-app:${_GIT_TAG}'
-    - '.'
+  # Step 1: Build Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: Build
+    args:
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/nathan-new-sre/sre-training-repo/my-flask-app:${_GIT_TAG}'
+      - '.'
 
-- name: 'gcr.io/cloud-builders/docker'
-  id: Push
-  args:
-    - 'push'
-    - 'us-central1-docker.pkg.dev/nathan-new-sre/sre-training-repo/my-flask-app:${_GIT_TAG}'
+  # Step 2: Push Docker image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: Push
+    args:
+      - 'push'
+      - 'us-central1-docker.pkg.dev/nathan-new-sre/sre-training-repo/my-flask-app:${_GIT_TAG}'
 
-- name: 'gcr.io/cloud-builders/gcloud'
-  id: Get GKE Credentials
-  args:
-    - 'container'
-    - 'clusters'
-    - 'get-credentials'
-    - 'my-flask-cluster'
-    - '--zone=us-central1-c'
-    - '--project=nathan-new-sre'
+  # Step 3: Get GKE credentials
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: Get GKE Credentials
+    args:
+      - 'container'
+      - 'clusters'
+      - 'get-credentials'
+      - 'my-flask-cluster'
+      - '--zone=us-central1-c'
+      - '--project=nathan-new-sre'
 
-- name: 'gcr.io/cloud-builders/kubectl'
-  id: Deploy to GKE
-  args:
-    - 'set'
-    - 'image'
-    - 'deployment/my-flask-app-deployment'
-    - 'my-flask-app-container=us-central1-docker.pkg.dev/nathan-new-sre/sre-training-repo/my-flask-app:${_GIT_TAG}'
-  env:
-    - 'CLOUDSDK_COMPUTE_ZONE=us-central1-c'
+  # Step 4: Deploy to GKE using kubectl
+  - name: 'gcr.io/cloud-builders/kubectl'
+    id: Deploy to GKE
+    args:
+      - 'set'
+      - 'image'
+      - 'deployment/my-flask-app-deployment'
+      - 'my-flask-app-container=us-central1-docker.pkg.dev/nathan-new-sre/sre-training-repo/my-flask-app:${_GIT_TAG}'
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-c'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=my-flask-cluster'
+      - 'CLOUDSDK_CORE_PROJECT=nathan-new-sre'
 
 substitutions:
   _GIT_TAG: 'latest'
