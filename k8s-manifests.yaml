@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-flask-app-deployment
+  labels:
+    app: my-flask-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: my-flask-app
+  template:
+    metadata:
+      labels:
+        app: my-flask-app
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "8080"
+    spec:
+      containers:
+      - name: my-flask-app-container
+        image: us-central1-docker.pkg.dev/nathan-new-sre/sre-training-repo/my-flask-app:v2.7
+        ports:
+        - containerPort: 8080
+        env:
+        - name: GOOGLE_CLOUD_PROJECT
+          value: "nathan-new-sre"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://otel-collector.default.svc.cluster.local:4317"
+        - name: OTEL_EXPORTER_OTLP_INSECURE
+          value: "true"

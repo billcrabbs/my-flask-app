@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector  # <--- Must match "otel-collector"
+  labels:
+    app: otel-collector
+spec:
+  selector:
+    app: otel-collector
+  ports:
+    - protocol: TCP
+      port: 4317
+      targetPort: 4317
